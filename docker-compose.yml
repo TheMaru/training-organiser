@@ -1,0 +1,33 @@
+services:
+  api-server:
+    build:
+      context: .
+      dockerfile: ./cmd/api-server/Dockerfile
+    image: training-organiser-api-server:local
+    container_name: api-server
+    ports:
+      - "8080:8080"
+    networks:
+      - appnet
+
+  next:
+    build:
+      context: ./web
+      dockerfile: ./Dockerfile
+      target: runner
+    image: training-organiser-next:local
+    container_name: next-app
+    ports:
+      - "3000:3000"
+    environment:
+      - API_BASE_URL=http://api-server:8080
+      - NODE_ENV=production
+    depends_on:
+      - api-server
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge
+
