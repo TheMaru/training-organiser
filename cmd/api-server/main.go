@@ -1,13 +1,19 @@
 package main
 
 import (
-	"encoding/json"
+	"database/sql"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/TheMaru/training-organiser/internal/api"
+	"github.com/TheMaru/training-organiser/internal/database"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type User struct {
@@ -16,8 +22,29 @@ type User struct {
 }
 
 func main() {
+	godotenv.Load()
+
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("DATABASE_URL is not set")
+	}
+
+	conn, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal("Can't connect to database:", err)
+	}
+	defer conn.Close()
+
+	queries := database.New(conn)
+
+	apiCfg := &api.ApiConfig{
+		DB: queries,
+	}
+
 	r := chi.NewRouter()
 
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://next-app:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -31,14 +58,14 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	r.Get("/users", func(w http.ResponseWriter, r *http.Request) {
-		users := []User{{ID: 1, Name: "user1"}, {ID: 2, Name: "user2"}}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(users)
-	})
+	v1Router := chi.NewRouter()
+
+	v1Router.Post("/users", apiCfg.HandleRegisterUser)
+
+	r.Mount("/v1", v1Router)
 
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":8080", // TODO: should this be configurable via env?
 		Handler:      r,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

@@ -28,3 +28,11 @@ You can generate the code via
 ```sh
 sqlc generate
 ```
+
+## Env file
+
+Before starting please copy ./.env.example and enter local env settings
+
+```sh
+cp ./.env.example ./.env
+```
