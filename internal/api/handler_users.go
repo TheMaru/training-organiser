@@ -15,6 +15,7 @@ type UserResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	UserName  string    `json:"user_name"`
+	Token     string    `json:"token"`
 }
 
 func (cfg *ApiConfig) HandleRegisterUser(w http.ResponseWriter, r *http.Request) {
