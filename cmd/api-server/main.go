@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/TheMaru/training-organiser/internal/api"
+	"github.com/TheMaru/training-organiser/internal/auth"
 	"github.com/TheMaru/training-organiser/internal/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -62,6 +63,14 @@ func main() {
 
 	v1Router.Post("/users", apiCfg.HandleRegisterUser)
 	v1Router.Post("/login", apiCfg.HandleLogin)
+	v1Router.Post("/refresh", apiCfg.HandleRefreshToken)
+	v1Router.Post("/revoke", apiCfg.HandleRevokeToken)
+
+	r.Group(func(r chi.Router) {
+		r.Use(auth.MiddlewareAuth)
+
+		// auth routes here
+	})
 
 	r.Mount("/v1", v1Router)
 

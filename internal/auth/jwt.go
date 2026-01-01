@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var JWT_DURATION = time.Duration(1) * time.Hour
+
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
 		Issuer:    "training-organiser",

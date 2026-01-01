@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/TheMaru/training-organiser/internal/auth"
+	"github.com/TheMaru/training-organiser/internal/database"
 )
 
 func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -35,21 +36,35 @@ func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	secret := os.Getenv("JWT_SECRET")
-	expirationDuration := time.Duration(1) * time.Hour
-	token, err := auth.MakeJWT(dbUser.ID, secret, expirationDuration)
+	token, err := auth.MakeJWT(dbUser.ID, secret, auth.JWT_DURATION)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create session", err)
 		return
 	}
 
-	// TODO: Add refresh token at some point
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create refresh token", err)
+		return
+	}
+
+	_, err = cfg.DB.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
+		Token:     refreshToken,
+		UserID:    dbUser.ID,
+		ExpiresAt: time.Now().Add(time.Hour * 24 * 60), // 60 days
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't save refresh token", err)
+		return
+	}
 
 	user := UserResponse{
-		ID:        dbUser.ID,
-		CreatedAt: dbUser.CreatedAt.Time,
-		UpdatedAt: dbUser.UpdatedAt.Time,
-		UserName:  dbUser.UserName,
-		Token:     token,
+		ID:           dbUser.ID,
+		CreatedAt:    dbUser.CreatedAt.Time,
+		UpdatedAt:    dbUser.UpdatedAt.Time,
+		UserName:     dbUser.UserName,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 	respondWithJSON(w, http.StatusOK, user)
 }
