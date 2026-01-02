@@ -13,3 +13,7 @@ WHERE id = $1 LIMIT 1;
 
 -- name: GetUsers :many
 SELECT * FROM users;
+
+-- name: GrantAdminRole :exec
+UPDATE users SET platform_role = 'admin', updated_at = NOW()
+WHERE id = $1;

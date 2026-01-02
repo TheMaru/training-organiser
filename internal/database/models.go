@@ -26,4 +26,5 @@ type User struct {
 	UpdatedAt    sql.NullTime
 	PasswordHash string
 	UserName     string
+	PlatformRole string
 }

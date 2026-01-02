@@ -14,7 +14,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (password_hash, user_name)
 VALUES ($1, $2)
-RETURNING id, created_at, updated_at, password_hash, user_name
+RETURNING id, created_at, updated_at, password_hash, user_name, platform_role
 `
 
 type CreateUserParams struct {
@@ -31,12 +31,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.PasswordHash,
 		&i.UserName,
+		&i.PlatformRole,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, created_at, updated_at, password_hash, user_name FROM users
+SELECT id, created_at, updated_at, password_hash, user_name, platform_role FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -49,12 +50,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.UpdatedAt,
 		&i.PasswordHash,
 		&i.UserName,
+		&i.PlatformRole,
 	)
 	return i, err
 }
 
 const getUserByUserName = `-- name: GetUserByUserName :one
-SELECT id, created_at, updated_at, password_hash, user_name FROM users
+SELECT id, created_at, updated_at, password_hash, user_name, platform_role FROM users
 WHERE user_name = $1 LIMIT 1
 `
 
@@ -67,12 +69,13 @@ func (q *Queries) GetUserByUserName(ctx context.Context, userName string) (User,
 		&i.UpdatedAt,
 		&i.PasswordHash,
 		&i.UserName,
+		&i.PlatformRole,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, created_at, updated_at, password_hash, user_name FROM users
+SELECT id, created_at, updated_at, password_hash, user_name, platform_role FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -90,6 +93,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.UpdatedAt,
 			&i.PasswordHash,
 			&i.UserName,
+			&i.PlatformRole,
 		); err != nil {
 			return nil, err
 		}
@@ -102,4 +106,14 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const grantAdminRole = `-- name: GrantAdminRole :exec
+UPDATE users SET platform_role = 'admin', updated_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) GrantAdminRole(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, grantAdminRole, id)
+	return err
 }
