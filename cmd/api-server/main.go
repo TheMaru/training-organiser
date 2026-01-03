@@ -66,10 +66,11 @@ func main() {
 	v1Router.Post("/refresh", apiCfg.HandleRefreshToken)
 	v1Router.Post("/revoke", apiCfg.HandleRevokeToken)
 
-	r.Group(func(r chi.Router) {
+	v1Router.Group(func(r chi.Router) {
 		r.Use(auth.MiddlewareAuth)
 
-		// auth routes here
+		r.Get("/users", apiCfg.HandleListUsers)
+		r.Get("/users/{id}", apiCfg.HandleListUser)
 	})
 
 	r.Mount("/v1", v1Router)
