@@ -71,6 +71,7 @@ func main() {
 
 		r.Get("/users", apiCfg.HandleListUsers)
 		r.Get("/users/{id}", apiCfg.HandleListUser)
+		r.Get("/users/me", apiCfg.HandleGetMyProfile)
 	})
 
 	r.Mount("/v1", v1Router)

@@ -110,3 +110,18 @@ func (cfg *ApiConfig) HandleListUser(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, dbUserToPublicUser(dbUser))
 }
+
+func (cfg *ApiConfig) HandleGetMyProfile(w http.ResponseWriter, r *http.Request) {
+	userID, err := auth.GetUserID(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Unable to extract user id from token", err)
+		return
+	}
+
+	dbUser, err := cfg.DB.GetUserByID(r.Context(), userID)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "User not found", err)
+		return
+	}
+	respondWithJSON(w, http.StatusOK, dbUserToPublicUser(dbUser))
+}
