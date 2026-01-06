@@ -125,3 +125,63 @@ func (cfg *ApiConfig) HandleGetMyProfile(w http.ResponseWriter, r *http.Request)
 	}
 	respondWithJSON(w, http.StatusOK, dbUserToPublicUser(dbUser))
 }
+
+func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		UserName string `json:"user_name"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Couldn't decode parameters", err)
+		return
+	}
+
+	idParam := chi.URLParam(r, "id")
+	userID, err := uuid.Parse(idParam)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	requesterID, err := auth.GetUserID(r.Context())
+	if err != nil || userID != requesterID {
+		respondWithError(w, http.StatusUnauthorized, "Unauthorized to change other users", err)
+		return
+	}
+
+	dbUser, err := cfg.DB.UpdateUser(r.Context(), database.UpdateUserParams{
+		ID:       userID,
+		UserName: params.UserName,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not update user", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, dbUserToPublicUser(dbUser))
+}
+
+func (cfg *ApiConfig) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	userID, err := uuid.Parse(idParam)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	requesterID, err := auth.GetUserID(r.Context())
+	if err != nil || userID != requesterID {
+		respondWithError(w, http.StatusUnauthorized, "Unauthorized to delete other users", err)
+		return
+	}
+
+	err = cfg.DB.DeleteUser(r.Context(), userID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not delete user", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
