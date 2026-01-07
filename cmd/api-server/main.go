@@ -8,11 +8,7 @@ import (
 	"time"
 
 	"github.com/TheMaru/training-organiser/internal/api"
-	"github.com/TheMaru/training-organiser/internal/auth"
 	"github.com/TheMaru/training-organiser/internal/database"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -22,6 +18,14 @@ type User struct {
 	Name string `json:"name"`
 }
 
+// @title Training Organiser API
+// @version 1.0
+// @description This is the API for the Training Organiser application
+// @host localhost:8080
+// @BasePath /v1
+// @securityDefinitions.apiKey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	godotenv.Load()
 
@@ -42,41 +46,7 @@ func main() {
 		DB: queries,
 	}
 
-	r := chi.NewRouter()
-
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://next-app:3000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
-
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
-	})
-
-	v1Router := chi.NewRouter()
-
-	v1Router.Post("/users", apiCfg.HandleRegisterUser)
-	v1Router.Post("/login", apiCfg.HandleLogin)
-	v1Router.Post("/refresh", apiCfg.HandleRefreshToken)
-	v1Router.Post("/revoke", apiCfg.HandleRevokeToken)
-
-	v1Router.Group(func(r chi.Router) {
-		r.Use(auth.MiddlewareAuth)
-
-		r.Get("/users", apiCfg.HandleListUsers)
-		r.Get("/users/{id}", apiCfg.HandleListUser)
-		r.Get("/users/me", apiCfg.HandleGetMyProfile)
-		r.Put("/users/{id}", apiCfg.HandleUpdateUser)
-		r.Delete("/users/{id}", apiCfg.HandleDeleteUser)
-	})
-
-	r.Mount("/v1", v1Router)
+	r := api.NewRouter(apiCfg)
 
 	srv := &http.Server{
 		Addr:         ":8080", // TODO: should this be configurable via env?

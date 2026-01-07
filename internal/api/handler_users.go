@@ -3,30 +3,12 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/TheMaru/training-organiser/internal/auth"
 	"github.com/TheMaru/training-organiser/internal/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
-
-type UserResponse struct {
-	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	UserName     string    `json:"user_name"`
-	Token        string    `json:"token"`
-	RefreshToken string    `json:"refresh_token"`
-}
-
-type UserPublicResponse struct {
-	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	UserName     string    `json:"user_name"`
-	PlatformRole string    `json:"platform_role"`
-}
 
 func dbUserToPublicUser(user database.User) UserPublicResponse {
 	return UserPublicResponse{
@@ -38,14 +20,18 @@ func dbUserToPublicUser(user database.User) UserPublicResponse {
 	}
 }
 
+// @Summary Register a new user
+// @Description Registers a new user and returns said user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body RegisterUserRequest true "Register data"
+// @Success 201 {object} UserResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users [post]
 func (cfg *ApiConfig) HandleRegisterUser(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		UserName string `json:"user_name"`
-		Password string `json:"password"`
-	}
-
 	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
+	params := RegisterUserRequest{}
 	err := decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error parsing JSON", err)
@@ -78,6 +64,17 @@ func (cfg *ApiConfig) HandleRegisterUser(w http.ResponseWriter, r *http.Request)
 	respondWithJSON(w, http.StatusCreated, user)
 }
 
+// @Summary Return all users
+// @Description Returns all current registered users
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
+// @Success 200 {array} UserPublicResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users [get]
 func (cfg *ApiConfig) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 	dbUsers, err := cfg.DB.GetUsers(r.Context())
 	if err != nil {
@@ -94,6 +91,19 @@ func (cfg *ApiConfig) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, usersResponse)
 }
 
+// @Summary Return specific user
+// @Description Returns a specific user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
+// @Param id path string true "User UUID"
+// @Success 200 {object} UserPublicResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /users/{id} [get]
 func (cfg *ApiConfig) HandleListUser(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	userID, err := uuid.Parse(idParam)
@@ -111,6 +121,18 @@ func (cfg *ApiConfig) HandleListUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, dbUserToPublicUser(dbUser))
 }
 
+// @Summary Return logged in user
+// @Description Returns the logged in user that sent the request
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
+// @Success 200 {object} UserPublicResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /users/me [get]
 func (cfg *ApiConfig) HandleGetMyProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := auth.GetUserID(r.Context())
 	if err != nil {
@@ -126,6 +148,21 @@ func (cfg *ApiConfig) HandleGetMyProfile(w http.ResponseWriter, r *http.Request)
 	respondWithJSON(w, http.StatusOK, dbUserToPublicUser(dbUser))
 }
 
+// @Summary Updates user
+// @Description updates the username of a user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
+// @Param id path string true "User UUID"
+// @Param request body UpdateUserRequest true "Update user data"
+// @Success 200 {object} UserPublicResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/{id} [put]
 func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		UserName string `json:"user_name"`
@@ -163,6 +200,19 @@ func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, dbUserToPublicUser(dbUser))
 }
 
+// @Summary Deletes a user
+// @Description Deletes user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
+// @Param id path string true "User UUID"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/{id} [delete]
 func (cfg *ApiConfig) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	userID, err := uuid.Parse(idParam)

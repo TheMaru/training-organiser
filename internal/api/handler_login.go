@@ -10,14 +10,20 @@ import (
 	"github.com/TheMaru/training-organiser/internal/database"
 )
 
+// @Summary Login user
+// @Description Authenticates a user and returns access/refresh tokens
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login Credentials"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /login [post]
 func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		UserName string `json:"user_name"`
-		Password string `json:"password"`
-	}
-
 	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
+	params := LoginRequest{}
 	if err := decoder.Decode(&params); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request", err)
 		return
@@ -31,7 +37,7 @@ func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	passwordMatch, err := auth.CheckPassword(params.Password, dbUser.PasswordHash)
 	if err != nil || !passwordMatch {
-		respondWithError(w, http.StatusInternalServerError, "Invalid username or password", err)
+		respondWithError(w, http.StatusUnauthorized, "Invalid username or password", err)
 		return
 	}
 

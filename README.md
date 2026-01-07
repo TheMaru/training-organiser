@@ -36,3 +36,21 @@ Before starting please copy ./.env.example and enter local env settings
 ```sh
 cp ./.env.example ./.env
 ```
+
+## Swaggo API Documentation
+
+To automatically create a swagger interface to document and test the code this
+project uses Swaggo
+
+To install the command-line tool please run
+
+```sh
+go install github.com/swaggo/swag/cmd/swag@latest
+```
+
+To document the API this project uses Swaggo if you have added something to the
+API or changed the annotations please run
+
+```sh
+swag init -g cmd/api-server/main.go
+```

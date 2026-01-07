@@ -8,6 +8,17 @@ import (
 	"github.com/TheMaru/training-organiser/internal/auth"
 )
 
+// @Summary Refresh access token
+// @Description Returns a new access token using a valid refresh token from the Authorization header
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer Refresh Token"
+// @Success 200 {object} TokenResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /refresh [post]
 func (cfg *ApiConfig) HandleRefreshToken(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -37,9 +48,7 @@ func (cfg *ApiConfig) HandleRefreshToken(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, struct {
-		Token string `json:"token"`
-	}{
+	respondWithJSON(w, http.StatusOK, TokenResponse{
 		Token: newAccessToken,
 	})
 }
