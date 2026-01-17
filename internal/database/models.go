@@ -11,6 +11,36 @@ import (
 	"github.com/google/uuid"
 )
 
+type ActiveCurriculumPeriod struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	TopicID   uuid.UUID
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type CurriculumPlan struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	Name      string
+}
+
+type CurriculumPlanSlot struct {
+	ID            uuid.UUID
+	PlanID        uuid.UUID
+	TopicID       uuid.UUID
+	SequenceOrder int32
+	Duration      int64
+}
+
+type CurriculumTopic struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	Name        string
+	Description sql.NullString
+	ColorCode   sql.NullString
+}
+
 type RefreshToken struct {
 	Token     string
 	CreatedAt time.Time

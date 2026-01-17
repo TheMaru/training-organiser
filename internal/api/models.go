@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: split this into multiple files
+
 type LoginRequest struct {
 	UserName string `json:"user_name"`
 	Password string `json:"password"`
@@ -43,4 +45,18 @@ type UserPublicResponse struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 	UserName     string    `json:"user_name"`
 	PlatformRole string    `json:"platform_role"`
+}
+
+type CreateTopicRequest struct {
+	Name        string  `json:"name" validate:"required"`
+	Description *string `json:"description,omitempty"`
+	ColorCode   *string `json:"color_code,omitempty"`
+}
+
+type TopicResponse struct {
+	ID          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	Name        string    `json:"name"`
+	Description *string   `json:"description"`
+	ColorCode   *string   `json:"color_code"`
 }

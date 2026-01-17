@@ -47,6 +47,8 @@ func NewRouter(cfg *ApiConfig) *chi.Mux {
 		r.Get("/users/me", cfg.HandleGetMyProfile)
 		r.Put("/users/{id}", cfg.HandleUpdateUser)
 		r.Delete("/users/{id}", cfg.HandleDeleteUser)
+
+		r.Post("/curriculum/topics", cfg.HandleCreateCurriculumTopic)
 	})
 
 	r.Mount("/v1", v1Router)
