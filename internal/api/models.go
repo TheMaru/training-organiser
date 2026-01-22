@@ -60,3 +60,19 @@ type TopicResponse struct {
 	Description *string   `json:"description"`
 	ColorCode   *string   `json:"color_code"`
 }
+
+type CreateCurriculumPlanRequest struct {
+	Name string `json:"name"`
+}
+
+type CurriculumPlanResponse struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	Name      string    `json:"name"`
+}
+
+type PlanResponse struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	Name      string    `json:"name"`
+}

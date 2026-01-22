@@ -50,6 +50,9 @@ func NewRouter(cfg *ApiConfig) *chi.Mux {
 
 		r.Get("/curriculum/topics", cfg.HandleListCurriculumTopics)
 		r.Post("/curriculum/topics", cfg.HandleCreateCurriculumTopic)
+
+		r.Get("/curriculum/plans", cfg.HandleListCurriculumPlans)
+		r.Post("/curriculum/plans", cfg.HandleCreateCurriculumPlan)
 	})
 
 	r.Mount("/v1", v1Router)

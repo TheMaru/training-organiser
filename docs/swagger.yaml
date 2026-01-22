@@ -1,5 +1,10 @@
 basePath: /v1
 definitions:
+  api.CreateCurriculumPlanRequest:
+    properties:
+      name:
+        type: string
+    type: object
   api.CreateTopicRequest:
     properties:
       color_code:
@@ -11,6 +16,15 @@ definitions:
     required:
     - name
     type: object
+  api.CurriculumPlanResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   api.ErrorResponse:
     properties:
       error:
@@ -21,6 +35,15 @@ definitions:
       password:
         type: string
       user_name:
+        type: string
+    type: object
+  api.PlanResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
         type: string
     type: object
   api.RegisterUserRequest:
@@ -88,6 +111,57 @@ info:
   title: Training Organiser API
   version: "1.0"
 paths:
+  /curriculum/plans:
+    get:
+      consumes:
+      - application/json
+      description: Returns all curriculum plans
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.PlanResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Get curriculum plans
+      tags:
+      - curriculum
+    post:
+      consumes:
+      - application/json
+      description: creates a new curriculum plan, it's the overarching structure for
+        the curriculum
+      parameters:
+      - description: Curriculum Plan Request json
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateCurriculumPlanRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.CurriculumPlanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Create new curriculum plan
+      tags:
+      - curriculum
   /curriculum/topics:
     get:
       consumes:
