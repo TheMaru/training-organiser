@@ -89,6 +89,26 @@ info:
   version: "1.0"
 paths:
   /curriculum/topics:
+    get:
+      consumes:
+      - application/json
+      description: Returns all curriculum topics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.TopicResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Get curriculum topics
+      tags:
+      - curriculum
     post:
       consumes:
       - application/json
