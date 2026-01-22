@@ -38,6 +38,29 @@ func (cfg *ApiConfig) HandleCreateCurriculumTopic(w http.ResponseWriter, r *http
 	respondWithJSON(w, http.StatusCreated, databaseTopicToResponse(dbTopic))
 }
 
+// @Summary Get curriculum topics
+// @Description Returns all curriculum topics
+// @Tags curriculum
+// @Accept json
+// @Produce json
+// @Success 200 {array} TopicResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /curriculum/topics [get]
+func (cfg *ApiConfig) HandleListCurriculumTopics(w http.ResponseWriter, r *http.Request) {
+	dbTopics, err := cfg.DB.ListCurriculumTopics(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not receive topics", err)
+		return
+	}
+
+	topics := make([]TopicResponse, 0)
+	for _, topic := range dbTopics {
+		topics = append(topics, databaseTopicToResponse(topic))
+	}
+
+	respondWithJSON(w, http.StatusOK, topics)
+}
+
 func databaseTopicToResponse(dbTopic database.CurriculumTopic) TopicResponse {
 	var desc *string
 	if dbTopic.Description.Valid {
@@ -56,26 +79,4 @@ func databaseTopicToResponse(dbTopic database.CurriculumTopic) TopicResponse {
 		ColorCode:   color,
 		CreatedAt:   dbTopic.CreatedAt,
 	}
-}
-
-// @Summary Get curriculum topics
-// @Description Returns all curriculum topics
-// @Tags curriculum
-// @Accept json
-// @Produce json
-// @Success 200 {array} TopicResponse
-// @Failure 500 {object} ErrorResponse
-// @Router /curriculum/topics [get]
-func (cfg *ApiConfig) HandleListCurriculumTopics(w http.ResponseWriter, r *http.Request) {
-	dbTopics, err := cfg.DB.ListCurriculumTopics(r.Context())
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not receive topics", err)
-	}
-
-	topics := make([]TopicResponse, 0)
-	for _, topic := range dbTopics {
-		topics = append(topics, databaseTopicToResponse(topic))
-	}
-
-	respondWithJSON(w, http.StatusOK, topics)
 }
