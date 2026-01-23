@@ -2,7 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+
+	"github.com/TheMaru/training-organiser/internal/database"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 // @Summary Create new curriculum plan
@@ -10,6 +15,8 @@ import (
 // @Tags curriculum
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
 // @Param request body CreateCurriculumPlanRequest true "Curriculum Plan Request json"
 // @Success 201 {object} CurriculumPlanResponse
 // @Failure 400 {object} ErrorResponse
@@ -41,6 +48,8 @@ func (cfg *ApiConfig) HandleCreateCurriculumPlan(w http.ResponseWriter, r *http.
 // @Tags curriculum
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
 // @Success 200 {array} PlanResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /curriculum/plans [get]
@@ -61,4 +70,61 @@ func (cfg *ApiConfig) HandleListCurriculumPlans(w http.ResponseWriter, r *http.R
 	}
 
 	respondWithJSON(w, http.StatusOK, plans)
+}
+
+// @Summary Add a slot to a plan
+// @Description Plan is the overaching structure and can have multiple slots for topics, this adds a topic to a plan
+// @Tags curriculum
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer token"
+// @Param request body AddSlotToPlanRequest true "struct AddSlotToPlanRequest"
+// @Success 201 {object} AddSlotToPlanResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /curriculum/plans/{id}/slots [post]
+func (cfg *ApiConfig) HandleAddSlotToPlan(w http.ResponseWriter, r *http.Request) {
+	planID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid plan ID", err)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := AddSlotToPlanRequest{}
+	if err := decoder.Decode(&params); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	if params.DurationUnit != "weeks" && params.DurationUnit != "months" {
+		respondWithError(w, http.StatusBadRequest, "duration_unit must be 'weeks' or 'months'", fmt.Errorf("Wrong duration_unit in request: %v", params.DurationUnit))
+		return
+	}
+
+	if params.DurationValue < 1 {
+		respondWithError(w, http.StatusBadRequest, "duration_value must be positive", fmt.Errorf("Wrong duration_value in request: %v", params.DurationValue))
+		return
+	}
+
+	slot, err := cfg.DB.AddSlotToPlan(r.Context(), database.AddSlotToPlanParams{
+		PlanID:        planID,
+		TopicID:       params.TopicID,
+		SequenceOrder: params.SequenceOrder,
+		DurationValue: params.DurationValue,
+		DurationUnit:  params.DurationUnit,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not add slot", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, AddSlotToPlanResponse{
+		PlanID:        slot.PlanID,
+		TopicID:       slot.TopicID,
+		SequenceOrder: slot.SequenceOrder,
+		DurationValue: slot.DurationValue,
+		DurationUnit:  slot.DurationUnit,
+	})
 }

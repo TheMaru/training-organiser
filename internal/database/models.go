@@ -30,7 +30,8 @@ type CurriculumPlanSlot struct {
 	PlanID        uuid.UUID
 	TopicID       uuid.UUID
 	SequenceOrder int32
-	Duration      int64
+	DurationValue int32
+	DurationUnit  string
 }
 
 type CurriculumTopic struct {

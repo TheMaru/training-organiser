@@ -76,3 +76,18 @@ type PlanResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
 }
+
+type AddSlotToPlanRequest struct {
+	TopicID       uuid.UUID `json:"topic_id"`
+	SequenceOrder int32     `json:"sequence_order"`
+	DurationValue int32     `json:"duration_value"`
+	DurationUnit  string    `json:"duration_unit"`
+}
+
+type AddSlotToPlanResponse struct {
+	PlanID        uuid.UUID `json:"plan_id"`
+	TopicID       uuid.UUID `json:"topic_id"`
+	SequenceOrder int32     `json:"sequence_order"`
+	DurationValue int32     `json:"duration_value"`
+	DurationUnit  string    `json:"duration_unit"`
+}

@@ -14,16 +14,17 @@ import (
 )
 
 const addSlotToPlan = `-- name: AddSlotToPlan :one
-INSERT INTO curriculum_plan_slots (plan_id, topic_id, sequence_order, duration)
-VALUES ($1, $2, $3, $4::interval)
-RETURNING id, plan_id, topic_id, sequence_order, duration
+INSERT INTO curriculum_plan_slots (plan_id, topic_id, sequence_order, duration_value, duration_unit)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, plan_id, topic_id, sequence_order, duration_value, duration_unit
 `
 
 type AddSlotToPlanParams struct {
 	PlanID        uuid.UUID
 	TopicID       uuid.UUID
 	SequenceOrder int32
-	Column4       int64
+	DurationValue int32
+	DurationUnit  string
 }
 
 func (q *Queries) AddSlotToPlan(ctx context.Context, arg AddSlotToPlanParams) (CurriculumPlanSlot, error) {
@@ -31,7 +32,8 @@ func (q *Queries) AddSlotToPlan(ctx context.Context, arg AddSlotToPlanParams) (C
 		arg.PlanID,
 		arg.TopicID,
 		arg.SequenceOrder,
-		arg.Column4,
+		arg.DurationValue,
+		arg.DurationUnit,
 	)
 	var i CurriculumPlanSlot
 	err := row.Scan(
@@ -39,7 +41,8 @@ func (q *Queries) AddSlotToPlan(ctx context.Context, arg AddSlotToPlanParams) (C
 		&i.PlanID,
 		&i.TopicID,
 		&i.SequenceOrder,
-		&i.Duration,
+		&i.DurationValue,
+		&i.DurationUnit,
 	)
 	return i, err
 }
@@ -168,7 +171,7 @@ func (q *Queries) GetActivePeriods(ctx context.Context, arg GetActivePeriodsPara
 }
 
 const getSlotsForPlan = `-- name: GetSlotsForPlan :many
-SELECT id, plan_id, topic_id, sequence_order, duration FROM curriculum_plan_slots
+SELECT id, plan_id, topic_id, sequence_order, duration_value, duration_unit FROM curriculum_plan_slots
 WHERE plan_id = $1
 ORDER BY sequence_order
 `
@@ -187,7 +190,8 @@ func (q *Queries) GetSlotsForPlan(ctx context.Context, planID uuid.UUID) ([]Curr
 			&i.PlanID,
 			&i.TopicID,
 			&i.SequenceOrder,
-			&i.Duration,
+			&i.DurationValue,
+			&i.DurationUnit,
 		); err != nil {
 			return nil, err
 		}

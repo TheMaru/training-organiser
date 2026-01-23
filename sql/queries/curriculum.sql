@@ -15,8 +15,8 @@ RETURNING *;
 SELECT * FROM curriculum_plans ORDER BY created_at DESC;
 
 -- name: AddSlotToPlan :one
-INSERT INTO curriculum_plan_slots (plan_id, topic_id, sequence_order, duration)
-VALUES ($1, $2, $3, $4::interval)
+INSERT INTO curriculum_plan_slots (plan_id, topic_id, sequence_order, duration_value, duration_unit)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: GetSlotsForPlan :many

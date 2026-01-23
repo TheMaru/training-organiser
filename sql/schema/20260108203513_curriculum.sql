@@ -19,7 +19,8 @@ CREATE TABLE curriculum_plan_slots (
   plan_id UUID NOT NULL REFERENCES curriculum_plans(id) ON DELETE CASCADE,
   topic_id UUID NOT NULL REFERENCES curriculum_topics(id) ON DELETE CASCADE,
   sequence_order INTEGER NOT NULL,
-  duration INTERVAL NOT NULL
+  duration_value INTEGER NOT NULL,
+  duration_unit TEXT NOT NULL CHECK (duration_unit IN ('weeks', 'months'))
 );
 
 CREATE TABLE active_curriculum_periods (

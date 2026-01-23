@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/curriculum/plans": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns all curriculum plans",
                 "consumes": [
                     "application/json"
@@ -28,6 +33,15 @@ const docTemplate = `{
                     "curriculum"
                 ],
                 "summary": "Get curriculum plans",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -47,6 +61,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "creates a new curriculum plan, it's the overarching structure for the curriculum",
                 "consumes": [
                     "application/json"
@@ -59,6 +78,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create new curriculum plan",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Curriculum Plan Request json",
                         "name": "request",
@@ -74,6 +100,64 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/api.CurriculumPlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/curriculum/plans/{id}/slots": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Plan is the overaching structure and can have multiple slots for topics, this adds a topic to a plan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "curriculum"
+                ],
+                "summary": "Add a slot to a plan",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "struct AddSlotToPlanRequest",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.AddSlotToPlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.AddSlotToPlanResponse"
                         }
                     },
                     "400": {
@@ -657,6 +741,43 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.AddSlotToPlanRequest": {
+            "type": "object",
+            "properties": {
+                "duration_unit": {
+                    "type": "string"
+                },
+                "duration_value": {
+                    "type": "integer"
+                },
+                "sequence_order": {
+                    "type": "integer"
+                },
+                "topic_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.AddSlotToPlanResponse": {
+            "type": "object",
+            "properties": {
+                "duration_unit": {
+                    "type": "string"
+                },
+                "duration_value": {
+                    "type": "integer"
+                },
+                "plan_id": {
+                    "type": "string"
+                },
+                "sequence_order": {
+                    "type": "integer"
+                },
+                "topic_id": {
+                    "type": "string"
+                }
+            }
+        },
         "api.CreateCurriculumPlanRequest": {
             "type": "object",
             "properties": {

@@ -53,6 +53,7 @@ func NewRouter(cfg *ApiConfig) *chi.Mux {
 
 		r.Get("/curriculum/plans", cfg.HandleListCurriculumPlans)
 		r.Post("/curriculum/plans", cfg.HandleCreateCurriculumPlan)
+		r.Post("/curriculum/plans/{id}/slots", cfg.HandleAddSlotToPlan)
 	})
 
 	r.Mount("/v1", v1Router)
