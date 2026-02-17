@@ -32,6 +32,9 @@ func NewRouter(cfg *ApiConfig) *chi.Mux {
 		w.Write([]byte("ok"))
 	})
 
+	// UI Routes
+	r.Get("/", cfg.HandleHome)
+
 	v1Router := chi.NewRouter()
 
 	v1Router.Post("/users", cfg.HandleRegisterUser)
@@ -56,7 +59,7 @@ func NewRouter(cfg *ApiConfig) *chi.Mux {
 		r.Post("/curriculum/plans/{id}/slots", cfg.HandleAddSlotToPlan)
 	})
 
-	r.Mount("/v1", v1Router)
+	r.Mount("/api/v1", v1Router)
 
 	return r
 }

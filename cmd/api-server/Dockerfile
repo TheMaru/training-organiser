@@ -5,6 +5,12 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
+# install templ
+RUN go install github.com/a-h/templ/cmd/templ@latest
+
+# generate templates
+RUN templ generate
+
 # build the API server
 RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/api-server ./cmd/api-server
 

@@ -22,7 +22,7 @@ type User struct {
 // @version 1.0
 // @description This is the API for the Training Organiser application
 // @host localhost:8080
-// @BasePath /v1
+// @BasePath /api/v1
 // @securityDefinitions.apiKey BearerAuth
 // @in header
 // @name Authorization
